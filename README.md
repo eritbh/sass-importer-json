@@ -35,6 +35,10 @@ im not coping youre coping
 
 ## usage
 
+> [!IMPORTANT]
+> this shit aint ready yet lol. `npm i github:eritbh/sass-importer-json` if you
+> insist on installing it
+
 Add the default export to the `importers` array when you call `sass.compile` or
 `sass.compileAsync` from the dart sass JS API.
 
