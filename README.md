@@ -39,8 +39,19 @@ im not coping youre coping
 > this shit aint ready yet lol. `npm i github:eritbh/sass-importer-json` if you
 > insist on installing it
 
-Add the default export to the `importers` array when you call `sass.compile` or
-`sass.compileAsync` from the dart sass JS API.
+The default export is a function which takes an options object and returns an
+importer. Add the returned importer to the `importers` array when you call
+`sass.compile` or `sass.compileAsync` from [the Dart Sass JS API][sass-api].
+
+### options
+
+- `encoding`: Defaults to `'utf-8'` which is almost certainly what you want, but
+  you can pass [any encoding Node supports][node-encodings]
+
+[sass-api]: https://sass-lang.com/documentation/js-api/
+[node-encodings]: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
+
+### example
 
 `build.js`:
 
@@ -49,7 +60,7 @@ import sass from 'sass';
 import jsonImporter from 'sass-importer-json';
 
 const output = sass.compile('style.scss', {
-	importers: [jsonImporter],
+	importers: [jsonImporter()],
 });
 
 // log it, write it, stick it in a stew

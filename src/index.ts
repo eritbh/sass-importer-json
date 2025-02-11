@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+import {type EncodingOption, readFileSync} from 'node:fs';
 import type * as sass from 'sass';
 
 /**
@@ -66,7 +66,9 @@ const sassVariableIdentifierRegexp =
  * All strings are converted to double-quoted string literals. All numbers are
  * treated as unitless. All arrays use square brackets. All map keys are quoted.
  */
-export default {
+export default ({encoding = 'utf-8'}: {
+	encoding?: EncodingOption;
+} = {}) => ({
 	canonicalize (url, context) {
 		if (!url.endsWith('.json')) {
 			return null;
@@ -93,4 +95,4 @@ export default {
 			}).join(''),
 		};
 	},
-} satisfies sass.Importer<'sync'>;
+} satisfies sass.Importer<'sync'>);
