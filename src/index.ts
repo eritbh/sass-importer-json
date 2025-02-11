@@ -24,7 +24,7 @@ function stringToScssLiteral (str: string) {
  * Throws if the provided value is not one of the basic JSON types (null,
  * boolean, string, number, array, or plain object/dictionary).
  */
-function jsonToScssInner (value: unknown) {
+function jsonToScssInner (value: unknown): string {
 	if (typeof value === 'boolean') {
 		return value ? 'true' : 'false';
 	}
