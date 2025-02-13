@@ -1,4 +1,4 @@
-import {type EncodingOption, readFileSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import type * as sass from 'sass';
 
 /**
@@ -41,7 +41,7 @@ function jsonToScssInner (value: unknown): string {
 		if (Array.isArray(value)) {
 			return `[${value.map(v => jsonToScssInner(v)).join(', ')}]`;
 		}
-		// it's a dict
+		// treat as dict
 		return `(${
 			Object.entries(value)
 				.map(([key, value]) =>
@@ -51,12 +51,12 @@ function jsonToScssInner (value: unknown): string {
 		})`;
 	}
 
-	// there are no other types in JSON, wtf did we get passed
+	// there are no other types in JSON, wtf did we get passed, a BigInt??
 	throw new Error('Invalid JSON value');
 }
 
 /** Imperfect regexp matching valid Sass identifiers. */
-const sassVariableIdentifierRegexp =
+const sassVariableIdentifierRegExp =
 	/[_a-zA-Z\u0080-\uFFFF][-_a-zA-Z0-9\u0080-\uFFFF]+/;
 
 /**
@@ -67,7 +67,7 @@ const sassVariableIdentifierRegexp =
  * treated as unitless. All arrays use square brackets. All map keys are quoted.
  */
 export default ({encoding = 'utf-8'}: {
-	encoding?: EncodingOption;
+	encoding?: BufferEncoding;
 } = {}) => ({
 	canonicalize (url, context) {
 		if (!url.endsWith('.json')) {
@@ -81,15 +81,15 @@ export default ({encoding = 'utf-8'}: {
 		return new URL(url, context.containingUrl);
 	},
 	load (canonicalUrl) {
-		const json = JSON.parse(readFileSync(canonicalUrl.pathname, 'utf-8'));
+		const json = JSON.parse(readFileSync(canonicalUrl.pathname, encoding));
 		if (typeof json !== 'object' || json == null || Array.isArray(json)) {
 			throw new Error('json file must contain a dict at the top level');
 		}
 		return {
 			syntax: 'scss',
 			contents: Object.entries(json).map(([key, value]) => {
-				if (!key.match(sassVariableIdentifierRegexp)) {
-					throw new Error(`"${key} is not a valid variable name`);
+				if (!key.match(sassVariableIdentifierRegExp)) {
+					throw new Error(`"${key}" is not a valid variable name`);
 				}
 				return `$${key}: ${jsonToScssInner(value)};\n`;
 			}).join(''),
