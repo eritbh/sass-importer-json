@@ -1,57 +1,21 @@
-# lol
+# sass-importer-json
 
-lmao
+Dart Sass importer for reading values in JSON files into Sass/SCSS variables.
 
-## erin what the fuck are you doing
+## Usage
 
-look man i just. i wrote this stylesheet for a subreddit a long time ago right.
-and one of the things they wanted it to do was for people to be able to use
-big-ass emoji image things by typing certain links into their comments. and it
-turns out back before new reddit existed and custom emoji support and the
-ability to embed gifs in comments and all this other shit was a thing, that got
-pretty popular. so the subreddit has like. several dozens of these things now,
-and some of them are even animated via `@keyframes` spritesheet hackery, and
-reddit stylesheets are size capped so sometimes the mods remove some of them in
-order to make room for new ones, its like this whole thing now right? and
-basically my personal hell is these two [massive][1] [files][2] which do nothing
-except define two gigantic sass maps which contain all the definitions for every
-comment face which exists. and look sass is a great language and everything but
-it wasnt made for this shit right, you dont want to have to deal with fucking
-scss syntax every time you want to make a change to this file, it has data types
-and inconsistent quoting rules and all these things that make it a fucking
-minefield for anyone that doesnt have seventy five years of web dev experience
-to edit. so i wrote this plugin, so those files can at least be massive JSON
-blobs, instead of massive SCSS blobs. which is probably marginally better. maybe
-someday ill even make a tool that can read those JSON blobs and then let people
-edit them from the tool and then write the blobs back out and if i ever do that
-hypothetical thing which will definitely happen soon tm then i won't need to
-worry about serializing to/from scss it'll just roundtrip to json which is much
-better
-
-im not coping youre coping
-
-[1]: https://github.com/r-anime/stylesheet/blob/e398e51dd135fc6af0f572f8410f0471e6d10ce4/src/_commentfaces-static.scss
-[2]: https://github.com/r-anime/stylesheet/blob/e398e51dd135fc6af0f572f8410f0471e6d10ce4/src/_commentfaces-animated.scss
-
-## usage
-
-> [!IMPORTANT]
-> this shit aint ready yet lol. `npm i github:eritbh/sass-importer-json` if you
-> insist on installing it
+    npm i sass-importer-json
 
 The default export is a function which takes an options object and returns an
 importer. Add the returned importer to the `importers` array when you call
 `sass.compile` or `sass.compileAsync` from [the Dart Sass JS API][sass-api].
 
-### options
+### Options
 
 - `encoding`: Defaults to `'utf-8'` which is almost certainly what you want, but
   you can pass [any encoding Node supports][node-encodings]
 
-[sass-api]: https://sass-lang.com/documentation/js-api/
-[node-encodings]: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
-
-### example
+### Example
 
 `build.js`:
 
@@ -80,15 +44,15 @@ console.log(output.css);
 
 ```scss
 // recommended to use `as` to put the values in a namespace - not required tho
-@use "thing.json" as myStuff;
+@use "data.json";
 
 .something::after {
-	content: myStuff.$foo;
-	font-size: myStuff.$bar * 1px;
+	content: data.$foo;
+	font-size: daa.$bar * 1px;
 }
 ```
 
-in your terminal:
+Then, in your terminal:
 
 ```
 $ node build.js
@@ -98,7 +62,7 @@ $ node build.js
 }
 ```
 
-## development
+## Development
 
 - `npm run fmt` to format code with dprint
 - `npm run build` to build the typescript thingy
@@ -116,6 +80,9 @@ $ node build.js
 - figure out what the hell is going on with `containingUrl` in `canonicalize`
   because it would be nice to be able to use this loader with `compileString`
 
-## license
+## License
 
 [WTFPL](/LICENSE)
+
+[sass-api]: https://sass-lang.com/documentation/js-api/
+[node-encodings]: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
