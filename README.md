@@ -1,6 +1,7 @@
 # sass-importer-json
 
-Dart Sass importer for reading values in JSON files into Sass/SCSS variables.
+Dart Sass importer for reading values in JSON files (or most other key-value-ish
+files) into Sass/SCSS variables.
 
 ## Usage
 
@@ -16,7 +17,7 @@ importer. Add the returned importer to the `importers` array when you call
   will recognize and attempt to load.
 - `parse`: Defaults to `JSON.parse`, but can be any function which receives file
   contents as a string and returns a value. Its return value will be read as a
-  dict, and its keys will become Sass variables.
+  dict whose entries will become the file's declared Sass variables.
 - `encoding`: Defaults to `'utf-8'` which is almost certainly what you want, but
   you can pass [any encoding Node supports][node-encodings]
 
@@ -71,9 +72,10 @@ $ node build.js
 #### Custom formats
 
 With the `parse` and `extensions` options, you can add support for importing
-custom JSON-like syntaxes like [JSONC][jsonc-parser] or [JSON5][json5], or even
-completely different formats like [YAML][yaml]. Any file format which can be
-parsed into a dict can be used with the right parse function:
+custom syntaxes like [JSONC][jsonc-parser] or [JSON5][json5], or even completely
+different formats like [YAML][yaml]. Basically any format consisting of
+key-value pairs can probably be used with this importer if you set an
+appropriate `parse` function:
 
 ```js
 import {compile} from 'sass';
