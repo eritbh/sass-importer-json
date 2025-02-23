@@ -147,7 +147,13 @@ function resolveImportPath (path: string, knownExts: string[], fromImport: boole
  * All strings are converted to double-quoted string literals. All numbers are
  * treated as unitless. All arrays use square brackets. All map keys are quoted.
  */
-export default ({encoding = 'utf-8'}: {
+export default ({
+	extensions = ['.json'],
+	parse = JSON.parse,
+	encoding = 'utf-8',
+}: {
+	extensions?: `.${string}`[];
+	parse?: (text: string) => Record<string, any>;
 	encoding?: BufferEncoding;
 } = {}) => ({
 	canonicalize (path, context) {
@@ -158,7 +164,7 @@ export default ({encoding = 'utf-8'}: {
 		const resolvedPath = resolveImportPath(
 			// make referenced path absolute a
 			absolutePath,
-			['.json'],
+			extensions,
 			context.fromImport,
 		);
 		if (!resolvedPath) {
@@ -167,7 +173,7 @@ export default ({encoding = 'utf-8'}: {
 		return new URL(`file://${resolvedPath}`);
 	},
 	load (canonicalUrl) {
-		const json = JSON.parse(readFileSync(canonicalUrl.pathname, encoding));
+		const json = parse(readFileSync(canonicalUrl.pathname, encoding)) as unknown;
 		if (typeof json !== 'object' || json == null || Array.isArray(json)) {
 			throw new Error('json file must contain a dict at the top level');
 		}

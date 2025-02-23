@@ -12,10 +12,17 @@ importer. Add the returned importer to the `importers` array when you call
 
 ### Options
 
+- `extensions`: Defaults to `['.json']`. List of file extensions the importer
+  will recognize and attempt to load.
+- `parse`: Defaults to `JSON.parse`, but can be any function which receives file
+  contents as a string and returns a value. Its return value will be read as a
+  dict, and its keys will become Sass variables.
 - `encoding`: Defaults to `'utf-8'` which is almost certainly what you want, but
   you can pass [any encoding Node supports][node-encodings]
 
-### Example
+### Examples
+
+#### Basic Usage
 
 `build.js`:
 
@@ -61,6 +68,57 @@ $ node build.js
 }
 ```
 
+#### Custom formats
+
+With the `parse` and `extensions` options, you can add support for importing
+custom JSON-like syntaxes like [JSONC][jsonc-parser] or [JSON5][json5], or even
+completely different formats like [YAML][yaml]. Any file format which can be
+parsed into a dict can be used with the right parse function:
+
+```js
+import {compile} from 'sass';
+import jsonImporter from 'sass-importer-json';
+
+import JSONC from 'jsonc-parser';
+import JSON5 from 'json5';
+import YAML from 'yaml';
+
+const out = compile('style.scss', {
+  importers: [
+    jsonImporter({
+      extensions: ['.json', '.jsonc'],
+      parse: JSONC.parse,
+    }),
+    jsonImporter({
+      extensions: ['.json5'],
+      parse: JSON5.parse,
+    }),
+    jsonImporter({
+      extensions: ['.yml', '.yaml'],
+      parse: YAML.parse,
+    }),
+  ],
+});
+```
+
+You don't have to pass a library function directly to `parse` - you can also
+write a custom function which takes a string and returns a file's contents. This
+can be useful to pass custom options to other parsers, or to pass a reviver to
+standard `JSON.parse`:
+
+```js
+import {compile} from 'sass';
+import jsonImporter from 'sass-importer-json';
+import YAML from 'yaml';
+
+const out = compile('style.scss', {
+  importers: [jsonImporter({
+    extensions: ['.yaml', '.yml'],
+    parse: value => YAML.parse(value, undefined, {stringKeys: true});
+  })],
+});
+```
+
 ## Development
 
 - `npm run fmt` to format code with dprint
@@ -76,12 +134,13 @@ $ node build.js
   using `color.scale()` or whatever? unsure how important this is since you can
   also just pass colors as number tuples or some other consistent value and
   manually create the color values from those numbers from sass)
-- figure out what the hell is going on with `containingUrl` in `canonicalize`
-  because it would be nice to be able to use this loader with `compileString`
 
 ## License
 
 [WTFPL](/LICENSE)
 
-[sass-api]: https://sass-lang.com/documentation/js-api/
+[json5]: https://www.npmjs.com/package/json5
+[jsonc-parser]: https://www.npmjs.com/package/jsonc-parser
 [node-encodings]: https://nodejs.org/api/buffer.html#buffers-and-character-encodings
+[sass-api]: https://sass-lang.com/documentation/js-api/
+[yaml]: https://www.npmjs.com/package/yaml
