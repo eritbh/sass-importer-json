@@ -4,7 +4,7 @@ Dart Sass importer for reading values in JSON files into Sass/SCSS variables.
 
 ## Usage
 
-    npm i sass-importer-json
+    npm install -D --production sass-importer-json
 
 The default export is a function which takes an options object and returns an
 importer. Add the returned importer to the `importers` array when you call
