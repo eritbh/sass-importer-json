@@ -11,20 +11,23 @@ test('usage from @import succeeds', t => {
 		logger: Logger.silent,
 	});
 
-	assert.strictEqual(css.trim(), `
-	:root {
-	  --a: 1;
-	  --b: 2;
-	  --c: 3;
-	  --d: 4;
-	}
-	`.trim().replace(/^\t+/gm, ''));
+	assert.strictEqual(
+		css.trim(),
+		`
+			:root {
+			  --a: 1;
+			  --b: 2;
+			  --c: 3;
+			  --d: 4;
+			}
+		`.trim().replace(/^\t+/gm, ''),
+	);
 });
 
 test('not loaded via @use', t => {
 	Array(4).map((_, i) => {
 		assert.throws(() => {
-			compile(join(dir, `use${i+1}.scss`));
+			compile(join(dir, `use${i + 1}.scss`));
 		});
-	})
-})
+	});
+});

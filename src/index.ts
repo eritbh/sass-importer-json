@@ -1,5 +1,5 @@
 import {readFileSync, statSync} from 'node:fs';
-import {basename, dirname, join, extname} from 'node:path';
+import {basename, dirname, extname, join} from 'node:path';
 import type * as sass from 'sass';
 
 /**
@@ -88,7 +88,11 @@ function dirExists (path: string) {
  * @see https://sass-lang.com/documentation/js-api/interfaces/importer/#canonicalize
  * @see https://github.com/sass/dart-sass/blob/main/lib/src/importer/utils.dart
  */
-function resolveImportPath (path: string, knownExts: string[], fromImport: boolean) {
+function resolveImportPath (
+	path: string,
+	knownExts: string[],
+	fromImport: boolean,
+) {
 	// e.g. if path is "path/to/foo.ext" these would be:
 	const dir = dirname(path); // "path/to"
 	const base = basename(path); // "foo.ext"
@@ -121,22 +125,26 @@ function resolveImportPath (path: string, knownExts: string[], fromImport: boole
 			join(dir, '_' + name + ext),
 			join(dir, name + ext),
 		]).filter(path => fileExists(path));
-		if (existing.length > 1) throw new Error(`Multiple matches: ${existing.join(', ')}`);
+		if (existing.length > 1) {
+			throw new Error(`Multiple matches: ${existing.join(', ')}`);
+		}
 		return existing[0] ?? null;
 	}
 
 	return (
 		// path/to/_foo.import.ext (only when using @import)
 		(fromImport ? disambiguate(dir, name + '.import') : null)
-		// path/to/_foo.ext
-		?? disambiguate(dir, name)
-		// if there was no file extension to begin with, we might be resolving a directory
-		?? ((!originalExt && dirExists(path)) ? (
-			// path/to/foo/_index.import.ext (only when using import)
-			(fromImport ? disambiguate(path, 'index.import') : null)
-			// path/to/foo/_index.ext
-			?? disambiguate(path, 'index')
-		) : null)
+			// path/to/_foo.ext
+			?? disambiguate(dir, name)
+			// if there was no file extension to begin with, we might be resolving a directory
+			?? ((!originalExt && dirExists(path))
+				? (
+					// path/to/foo/_index.import.ext (only when using import)
+					(fromImport ? disambiguate(path, 'index.import') : null)
+						// path/to/foo/_index.ext
+						?? disambiguate(path, 'index')
+				)
+				: null)
 	);
 }
 
@@ -157,10 +165,15 @@ export default ({
 	encoding?: BufferEncoding;
 } = {}) => ({
 	canonicalize (path, context) {
-		if (!context.containingUrl || context.containingUrl.protocol !== 'file:') {
+		if (
+			!context.containingUrl || context.containingUrl.protocol !== 'file:'
+		) {
 			return null;
 		}
-		const absolutePath = join(dirname(context.containingUrl.pathname), path);
+		const absolutePath = join(
+			dirname(context.containingUrl.pathname),
+			path,
+		);
 		const resolvedPath = resolveImportPath(
 			// make referenced path absolute a
 			absolutePath,
@@ -173,7 +186,9 @@ export default ({
 		return new URL(`file://${resolvedPath}`);
 	},
 	load (canonicalUrl) {
-		const json = parse(readFileSync(canonicalUrl.pathname, encoding)) as unknown;
+		const json = parse(
+			readFileSync(canonicalUrl.pathname, encoding),
+		) as unknown;
 		if (typeof json !== 'object' || json == null || Array.isArray(json)) {
 			throw new Error('json file must contain a dict at the top level');
 		}

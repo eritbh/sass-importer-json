@@ -10,12 +10,15 @@ test('basic paths are resolved and values are pulled in', t => {
 		importers: [jsonImporter()],
 	});
 
-	assert.strictEqual(css, `
-	:root {
-	  --a: 1;
-	  --b: asdf asdf asdf;
-	  --c: [multiple, things];
-	  --d: bar;
-	}
-	`.trim().replace(/^\t+/gm, ''));
+	assert.strictEqual(
+		css,
+		`
+			:root {
+			  --a: 1;
+			  --b: asdf asdf asdf;
+			  --c: [multiple, things];
+			  --d: bar;
+			}
+		`.trim().replace(/^\t+/gm, ''),
+	);
 });

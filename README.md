@@ -79,25 +79,25 @@ parsed into a dict can be used with the right parse function:
 import {compile} from 'sass';
 import jsonImporter from 'sass-importer-json';
 
-import JSONC from 'jsonc-parser';
 import JSON5 from 'json5';
+import JSONC from 'jsonc-parser';
 import YAML from 'yaml';
 
 const out = compile('style.scss', {
-  importers: [
-    jsonImporter({
-      extensions: ['.json', '.jsonc'],
-      parse: JSONC.parse,
-    }),
-    jsonImporter({
-      extensions: ['.json5'],
-      parse: JSON5.parse,
-    }),
-    jsonImporter({
-      extensions: ['.yml', '.yaml'],
-      parse: YAML.parse,
-    }),
-  ],
+	importers: [
+		jsonImporter({
+			extensions: ['.json', '.jsonc'],
+			parse: JSONC.parse,
+		}),
+		jsonImporter({
+			extensions: ['.json5'],
+			parse: JSON5.parse,
+		}),
+		jsonImporter({
+			extensions: ['.yml', '.yaml'],
+			parse: YAML.parse,
+		}),
+	],
 });
 ```
 
@@ -112,10 +112,10 @@ import jsonImporter from 'sass-importer-json';
 import YAML from 'yaml';
 
 const out = compile('style.scss', {
-  importers: [jsonImporter({
-    extensions: ['.yaml', '.yml'],
-    parse: value => YAML.parse(value, undefined, {stringKeys: true});
-  })],
+	importers: [jsonImporter({
+		extensions: ['.yaml', '.yml'],
+		parse: value => YAML.parse(value, undefined, {stringKeys: true});
+	})],
 });
 ```
 
