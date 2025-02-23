@@ -43,8 +43,7 @@ console.log(output.css);
 `style.scss`:
 
 ```scss
-// recommended to use `as` to put the values in a namespace - not required tho
-@use "data.json";
+@use "data";
 
 .something::after {
 	content: data.$foo;

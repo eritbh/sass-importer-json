@@ -1,4 +1,5 @@
-import {readFileSync} from 'node:fs';
+import {readFileSync, statSync} from 'node:fs';
+import {basename, dirname, join, extname} from 'node:path';
 import type * as sass from 'sass';
 
 /**
@@ -57,7 +58,87 @@ function jsonToScssInner (value: unknown): string {
 
 /** Imperfect regexp matching valid Sass identifiers. */
 const sassVariableIdentifierRegExp =
-	/[_a-zA-Z\u0080-\uFFFF][-_a-zA-Z0-9\u0080-\uFFFF]+/;
+	/[_a-zA-Z\u0080-\uFFFF][-_a-zA-Z0-9\u0080-\uFFFF]*/;
+
+/** Checks if a path exists and is a file. */
+function fileExists (path: string) {
+	try {
+		return statSync(path).isFile();
+	} catch (error) {
+		return false;
+	}
+}
+
+/** Checks if a path exists and is a directory. */
+function dirExists (path: string) {
+	try {
+		return statSync(path).isDirectory();
+	} catch (error) {
+		return false;
+	}
+}
+
+/**
+ * Resolve an import path to the file on disk it references. If none is found,
+ * returns `null`. If multiple equally-valid candidates are found, throws
+ * an error. Otherwise, returns the resolved path.
+ *
+ * Basically a reimplementation of `resolveImportPath` from Dart Sass itself.
+ *
+ * @see https://sass-lang.com/documentation/js-api/interfaces/importer/#canonicalize
+ * @see https://github.com/sass/dart-sass/blob/main/lib/src/importer/utils.dart
+ */
+function resolveImportPath (path: string, knownExts: string[], fromImport: boolean) {
+	// e.g. if path is "path/to/foo.ext" these would be:
+	const dir = dirname(path); // "path/to"
+	const base = basename(path); // "foo.ext"
+	const originalExt = extname(path); // ".ext"
+	const name = base.substring(0, base.length - originalExt.length); // "foo"
+
+	let exts: string[];
+	if (originalExt && knownExts.includes(originalExt)) {
+		// The path specified an extension we know, don't look for others
+		exts = [originalExt];
+	} else {
+		// No extension specified, look for any we know about
+		exts = knownExts;
+	}
+
+	/**
+	 * Given a directory and a name without a file extension, searches for a
+	 * file on disk whose name matches the input, accounting for partials and
+	 * the precomputed set of potential file extensions. If there is no matching
+	 * file, returns `null`. If there are multiple matching files, throws an
+	 * error informing the user of the ambiguity. Otherwise, returns the path of
+	 * the single matching file.
+	 *
+	 * For example, calling `disambiguate('path/to', 'foo')` will search the
+	 * files `path/to/_foo.ext` and `path/to/foo.ext` for each potential file
+	 * extension `.ext`.
+	 */
+	function disambiguate (dir: string, name: string) {
+		let existing = exts.flatMap(ext => [
+			join(dir, '_' + name + ext),
+			join(dir, name + ext),
+		]).filter(path => fileExists(path));
+		if (existing.length > 1) throw new Error(`Multiple matches: ${existing.join(', ')}`);
+		return existing[0] ?? null;
+	}
+
+	return (
+		// path/to/_foo.import.ext (only when using @import)
+		(fromImport ? disambiguate(dir, name + '.import') : null)
+		// path/to/_foo.ext
+		?? disambiguate(dir, name)
+		// if there was no file extension to begin with, we might be resolving a directory
+		?? ((!originalExt && dirExists(path)) ? (
+			// path/to/foo/_index.import.ext (only when using import)
+			(fromImport ? disambiguate(path, 'index.import') : null)
+			// path/to/foo/_index.ext
+			?? disambiguate(path, 'index')
+		) : null)
+	);
+}
 
 /**
  * An importer which handles including local `.json` files by converting their
@@ -69,16 +150,21 @@ const sassVariableIdentifierRegExp =
 export default ({encoding = 'utf-8'}: {
 	encoding?: BufferEncoding;
 } = {}) => ({
-	canonicalize (url, context) {
-		if (!url.endsWith('.json')) {
+	canonicalize (path, context) {
+		if (!context.containingUrl || context.containingUrl.protocol !== 'file:') {
 			return null;
 		}
-		if (!context.containingUrl) {
-			throw new Error(
-				'containingUrl is missing mom come pick me up im scared',
-			);
+		const absolutePath = join(dirname(context.containingUrl.pathname), path);
+		const resolvedPath = resolveImportPath(
+			// make referenced path absolute a
+			absolutePath,
+			['.json'],
+			context.fromImport,
+		);
+		if (!resolvedPath) {
+			return null;
 		}
-		return new URL(url, context.containingUrl);
+		return new URL(`file://${resolvedPath}`);
 	},
 	load (canonicalUrl) {
 		const json = JSON.parse(readFileSync(canonicalUrl.pathname, encoding));
