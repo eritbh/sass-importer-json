@@ -10,6 +10,7 @@
 	],
 	"scripts": {
 		"fmt": "dprint fmt",
+		"fmt:check": "dprint check",
 		"build": "tsc",
 		"test": "node --test",
 		"prepublishOnly": "dprint check && tsc"
