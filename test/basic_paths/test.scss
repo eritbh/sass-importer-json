@@ -1,0 +1,13 @@
+@use "a";
+@use "b.json" as *;
+@use "c" as somethingElseEntirely;
+@use "d" as *;
+
+@use "sass:map" as map;
+
+:root {
+	--a: #{a.$a};
+	--b: #{$b};
+	--c: #{somethingElseEntirely.$c};
+	--d: #{map.get($d, "foo")};
+}
