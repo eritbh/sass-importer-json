@@ -1,6 +1,6 @@
 {
 	"name": "sass-importer-json",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"description": "Dart Sass importer for reading values in JSON files into Sass/SCSS variables",
 	"type": "module",
 	"main": "dist/index.js",
